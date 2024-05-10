@@ -1,6 +1,6 @@
 ---
 networks:
-  PROXY_NETWORK:
+  YOUR_NETWORK:
     external: true
 
 services:
@@ -19,4 +19,4 @@ services:
       - ./cache:/var/cache/bind
       - ./records:/var/lib/bind
     networks:
-      - PROXY_NETWORK
+      - YOUR_NETWORK
