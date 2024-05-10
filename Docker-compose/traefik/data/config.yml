@@ -1,0 +1,69 @@
+---
+# http:
+#   routers:
+#     YOUR_HTTPS_ROUTER:
+#       entryPoints:
+#         - "https"
+#       rule: "Host(`YOUR.SERVICES.DOMAIN.NAME`)"
+#       middlewares:
+#         - default-headers
+#         - https-redirectscheme
+#       tls: {}
+#       service: YOUR_HTTPS_SERVICE
+# 
+#   services:
+#     YOUR_HTTPS_SERVICES:
+#       loadBalancer:
+#         servers:
+#           - url: "YOUR.SERVICES.IP.ADDRESS:PORT"
+#         passHostHeader: true
+
+  middlewares:
+    https-redirectscheme:
+      redirectScheme:
+        scheme: https
+        permanent: true
+
+    default-headers:
+      headers:
+        frameDeny: true
+        browserXssFilter: true
+        contentTypeNosniff: true
+        forceSTSHeader: true
+        stsIncludeSubdomains: true
+        stsPreload: true
+        stsSeconds: 15552000
+        customFrameOptionsValue: SAMEORIGIN
+        customRequestHeaders:
+          X-Forwarded-Proto: https
+
+    default-whitelist:
+      ipAllowList:
+        sourceRange:
+        - "YOUR.LOCAL.SUBNETS.AND/CIDR"
+
+    secured:
+      chain:
+        middlewares:
+        - default-whitelist
+        - default-headers
+
+
+# tcp:
+#   YOUR_TCP_ROUTER:
+#     minecraft-lastprism:
+#       entryPoints:
+#         - "ENTRYPOINT"
+#       # When not configuring tls 
+#       # rule: "HostSNI(`*`)"
+# 
+#       # When configuring tls
+#       # rule: "HostSNI(`YOUR.SERVICES.DOMAIN.NAME`)"
+#       # tls: {}
+#       service: YOUR_TCP_SERVICE
+# 
+#   services:
+#     YOUR_TCP_SERVICE:
+#       loadBalancer:
+#         servers:
+#           - address: "YOUR_SERVICES_IP_ADDRESS:PORT"
