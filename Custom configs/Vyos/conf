@@ -1,0 +1,228 @@
+firewall {
+    global-options {
+        state-policy {
+            established {
+                action "accept"
+            }
+            invalid {
+                action "drop"
+            }
+            related {
+                action "accept"
+            }
+        }
+    }
+    group {
+        interface-group TEST1 {
+            interface "ethN"
+        }
+        interface-group WAN {
+            interface "ethN"
+        }
+        network-group TEST-NET1 {
+            network "x.x.x.x/x"
+        }
+        network-group TEST-NET2 {
+            network "x.x.x.x/x"
+        }
+    }
+    ipv4 {
+        forward {
+            filter {
+                default-action "accept"
+                rule 100 {
+                    action "jump"
+                    destination {
+                        group {
+                            network-group "TEST-NET1"
+                        }
+                    }
+                    inbound-interface {
+                        group "WAN"
+                    }
+                    jump-target "incoming"
+                }
+                rule 200 {
+                    action "jump"
+                    destination {
+                        group {
+                            network-group "TEST-NET2"
+                        }
+                    }
+                    inbound-interface {
+                        group "WAN"
+                    }
+                    jump-target "incoming"
+                }
+            }
+        }
+        input {
+            filter {
+                default-action "drop"
+                rule 20 {
+                    action "jump"
+                    destination {
+                        port "22"
+                    }
+                    jump-target "VyOS-MANAGEMENT"
+                    protocol "tcp"
+                }
+                rule 30 {
+                    action "accept"
+                    icmp {
+                        type-name "echo-request"
+                    }
+                    protocol "icmp"
+                    state "new"
+                }
+                rule 50 {
+                    action "accept"
+                    source {
+                        address "127.0.0.0/8"
+                    }
+                }
+            }
+        }
+        name VyOS-MANAGEMENT {
+            default-action "return"
+            rule 15 {
+                action "accept"
+                inbound-interface {
+                    group "LAN"
+                }
+                log
+            }
+        }
+        name incoming {
+            default-action "drop"
+        }
+    }
+}
+interfaces {
+    ethernet eth0 {
+        address "x.x.x.x/x"
+        description "TEST1"
+    }
+    ethernet eth1 {
+        address "dhcp"
+        description "WAN"
+    }
+    loopback lo {
+    }
+}
+nat {
+    destination {
+        rule EXAMPLE {
+            description "EXAMPLE DNAT"
+            destination {
+                port "PORT"
+            }
+            inbound-interface {
+                name "YOUR_WAN"
+            }
+            translation {
+                address "x.x.x.x"
+            }
+        }
+    }
+    source {
+        rule 100 {
+            outbound-interface {
+                name "YOUR_WAN"
+            }
+            source {
+                address "x.x.x.x/x"
+            }
+            translation {
+                address "masquerade"
+            }
+        }
+    }
+}
+service {
+    dhcp-server {
+        shared-network-name TEST {
+            option {
+                name-server "x.x.x.x"
+            }
+            subnet x.x.x.x/x {
+                lease "86400"
+                option {
+                    default-router "x.x.x.x"
+                }
+                range 0 {
+                    start "x.x.x.x"
+                    stop "x.x.x.x"
+                }
+                subnet-id "x"
+            }
+        }
+    }
+    dns
+    ntp {
+        allow-client {
+            address "0.0.0.0/0"
+            address "::/0"
+        }
+        server time1.vyos.net {
+        }
+        server time2.vyos.net {
+        }
+        server time3.vyos.net {
+        }
+    }
+    ssh {
+        disable-password-authentication
+        port "22"
+    }
+}
+system {
+    config-management {
+        commit-revisions "100"
+    }
+    conntrack {
+        modules {
+            ftp
+            h323
+            nfs
+            pptp
+            sip
+            sqlnet
+            tftp
+        }
+    }
+    console {
+        device ttyS0 {
+            speed "115200"
+        }
+    }
+    host-name "HOST_NAME"
+    // VERY IMPORTANT AFTER LOADING THIS CONF. LOG INTO DEFINED USER AND MANUALLY DELETE VYOS 
+    login {
+        user YOUR_USER {
+            authentication {
+                public-keys YOUR@DEVICE {
+                    key "YOUR_KEY_CONTENT"
+                    type "ssh-rsa"
+                }
+            }
+        }
+    }
+    name-server "x.x.x.x"
+    syslog {
+        global {
+            facility all {
+                level "info"
+            }
+            facility local7 {
+                level "debug"
+            }
+        }
+    }
+    time-zone "Europe/Berlin"
+}
+
+
+// Warning: Do not remove the following line.
+// vyos-config-version: "bgp@5:broadcast-relay@1:cluster@2:config-management@1:conntrack@5:conntrack-sync@2:container@2:dhcp-relay@2:dhcp-server@11:dhcpv6-server@5:dns-dynamic@4:dns-forwarding@4:firewall@15:flow-accounting@1:https@6:ids@1:interfaces@32:ipoe-server@3:ipsec@13:isis@3:l2tp@9:lldp@2:mdns@1:monitoring@1:nat@7:nat66@3:ntp@3:openconnect@3:openvpn@1:ospf@2:pim@1:policy@8:pppoe-server@10:pptp@5:qos@2:quagga@11:rip@1:rpki@2:salt@1:snmp@3:ssh@2:sstp@6:system@27:vrf@3:vrrp@4:vyos-accel-ppp@2:wanloadbalance@3:webproxy@2"
+// Release version: 1.5-rolling-202405070019
