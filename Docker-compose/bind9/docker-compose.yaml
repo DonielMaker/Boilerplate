@@ -1,0 +1,22 @@
+---
+networks:
+  PROXY_NETWORK:
+    external: true
+
+services:
+  bind9:
+    container_name: bind9
+    image: ubuntu/bind9:latest
+    restart: unless-stopped
+    environment:
+      - BIND9_USER=root
+      - TZ=Europe/Berlin
+    ports:
+      - "53:53/tcp"
+      - "53:53/udp"
+    volumes:
+      - ./config:/etc/bind
+      - ./cache:/var/cache/bind
+      - ./records:/var/lib/bind
+    networks:
+      - PROXY_NETWORK

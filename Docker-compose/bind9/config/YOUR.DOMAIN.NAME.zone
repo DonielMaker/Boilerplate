@@ -1,0 +1,18 @@
+$TTL 2d
+
+$ORIGIN YOUR.DOMAIN. 
+
+@			IN	SOA	ns.YOUR.DOMAIN. YOUR.EMAIL@something.com. (
+					20240502	; serial
+					12h		; refresh
+					15m		; retry
+					3w		; expire
+					2h		; minimum ttl
+					)
+
+			IN	NS	ns
+
+ns			IN	A	YOUR.NAME-SERVER.IP.ADDRESS
+
+; -- add dns records below
+
